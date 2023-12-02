@@ -190,7 +190,8 @@ class ResendService extends NotificationService {
          const sendOptions = {
             to,
             from,
-            replayTo
+            // from the resend library
+            reply_to: replayTo
          }
 
          if (this.options_.subject_template_type === 'text') {
