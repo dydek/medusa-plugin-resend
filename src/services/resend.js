@@ -73,7 +73,7 @@ class ResendService extends NotificationService {
 
    async sendNotification(event, eventData, attachmentGenerator) {
       let templateId = this.getTemplateId(event)
-      if (!templateId) { 
+      if (!templateId) {
          throw new MedusaError(MedusaError.Types.INVALID_DATA, "Resend service: No template was set for this event")
       }
 
@@ -107,8 +107,8 @@ class ResendService extends NotificationService {
          if (text) sendOptions.text = text
       }
 
-      if (!sendOptions.subject || (!sendOptions.html && !sendOptions.text && !sendOptions.react)) { 
-         throw new MedusaError(MedusaError.Types.INVALID_DATA, "Resend service: The requested templates were not found. Check template path in config.") 	
+      if (!sendOptions.subject || (!sendOptions.html && !sendOptions.text && !sendOptions.react)) {
+         throw new MedusaError(MedusaError.Types.INVALID_DATA, "Resend service: The requested templates were not found. Check template path in config.")
       }
 
       const attachments = await this.fetchAttachments(
@@ -171,10 +171,11 @@ class ResendService extends NotificationService {
       * @param {string} template_id - id of template to use
       * @param {string} from - sender of email
       * @param {string} to - receiver of email
+      * @param {string} replayTo - replayTo of email
       * @param {Object} data - data to send in mail (match with template)
       * @return {Promise} result of the send operation
       */
-   async sendEmail(templateId, from, to, data) {
+   async sendEmail(templateId, from, to, replayTo, data) {
       // This function is used by the /resend/send API endpoint included in this plugin.
       // It is disabled by default.
       // This endpoint may be useful for testing purposes and for use by related applications.
@@ -182,13 +183,14 @@ class ResendService extends NotificationService {
       // Most people will NOT need to enable it.
       // If you are certain that you want to enable it and that you know what you are doing,
       // set the environment variable RESEND_ENABLE_ENDPOINT to "42" (a string, not an int).
-      // The unsual setting is meant to prevent enabling by accident or without thought.
+      // The unusual setting is meant to prevent enabling by accident or without thought.
       if (this.options_.enable_endpoint !== '42') { return false }
 
       try {
          const sendOptions = {
-            to: to,
-            from: from
+            to,
+            from,
+            replayTo
          }
 
          if (this.options_.subject_template_type === 'text') {
@@ -197,7 +199,7 @@ class ResendService extends NotificationService {
          } else {
             sendOptions.subject = await this.compileSubjectTemplate(templateId, data)
          }
-   
+
          if (this.options_.body_template_type === 'react') {
             const react = await this.compileReactTemplate(templateId, data)
             if (react) sendOptions.react = react
@@ -206,9 +208,9 @@ class ResendService extends NotificationService {
             if (html) sendOptions.html = html
             if (text) sendOptions.text = text
          }
-   
+
          if (!sendOptions.subject || (!sendOptions.html && !sendOptions.text && !sendOptions.react)) {
-            return { 
+            return {
                message: "Message not sent. Templates were not found or a compile error was encountered.",
                results: {
                   sendOptions
@@ -237,8 +239,8 @@ class ResendService extends NotificationService {
       const textTemplate = fs.existsSync(path.join(this.templatePath_, templateId, 'text.hbs')) ?
          Handlebars.compile(fs.readFileSync(path.join(this.templatePath_, templateId, 'text.hbs'), "utf8")) : null
 
-      return { 
-         html: htmlTemplate? htmlTemplate(data) : null, 
+      return {
+         html: htmlTemplate? htmlTemplate(data) : null,
          text: textTemplate? textTemplate(data) : null
       }
    }
@@ -687,8 +689,8 @@ class ResendService extends NotificationService {
          {
             id: returnRequest.items.map(({ item_id }) => item_id),
          },
-         { 
-            relations: ["tax_lines"] 
+         {
+            relations: ["tax_lines"]
          }
       )
 

@@ -20,6 +20,7 @@ export default (rootDirectory) => {
          template_id: z.string().min(1),
          from: z.string().min(1),
          to: z.string().min(1),
+         replayTo: z.string().optional().default(""),
          data: z.object({}).passthrough(),
       })
 
@@ -28,7 +29,7 @@ export default (rootDirectory) => {
          throw new MedusaError(MedusaError.Types.INVALID_DATA, error)
       }
       
-      resendService.sendEmail(data.template_id, data.from, data.to, data.data).then((result) => {
+      resendService.sendEmail(data.template_id, data.from, data.to, data.replayTo, data.data).then((result) => {
          return res.json({
             result
          })
